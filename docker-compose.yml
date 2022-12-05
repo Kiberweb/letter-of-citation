@@ -1,0 +1,49 @@
+version: '3'
+services:
+  appnginx:
+    build:
+      context: ./docker/server
+      dockerfile: nginx.docker
+    container_name: appnginx
+    volumes:
+      - ./web-app:/web-app
+    depends_on:
+      - appphpfpm
+    ports:
+      - "3700:80"
+
+  appphpfpm:
+    build:
+      context: ./docker/php
+      dockerfile: php-fpm.docker
+    container_name: appphpfpm
+    working_dir: /web-app
+    volumes:
+      - ./web-app:/web-app
+    depends_on:
+      - appmysql
+
+  appmysql:
+    container_name: appmysql
+    image: mysql:8.0.29
+    volumes:
+      - ./docker/db/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: db
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: 1234567
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+
+  app-phpmyadmin:
+    image: phpmyadmin
+    container_name: app-phpmyadmin
+    ports:
+      - "2000:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=appmysql
+      - PMA_PORTS=3306
+      - PMA_USER=laravel
+      - PMA_PASSWORD=1234567
